@@ -1,14 +1,11 @@
-from math import prod
 from fastapi import FastAPI
 from redis_om import get_redis_connection, HashModel
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import os
-from load_dotenv import load_dotenv
+from dotenv import load_dotenv,find_dotenv
 
-
-env_path = Path('.')/'.env'
-load_dotenv(dotenv_path=env_path)
+load_dotenv(find_dotenv())
 
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 
