@@ -2,3 +2,4 @@
 .pyc
 inventory/__pycache__/main.cpython-38.pyc
 payment/__pycache__/main.cpython-38.pyc
+*.pyc
