@@ -55,7 +55,10 @@ class Order(HashModel):
 
 @app.get('/orders')
 def get():
-    return [format_order(pk) for pk in Order.all_pks()]
+    pks = Order.all_pks()
+    res = [format_order(pk) for pk in pks]
+
+    return res if res else "No orders to display"
 
 
 def format_order(pk):
@@ -118,19 +121,13 @@ def order_completed(order: Order):
 def get():
     pks = Order.all_pks()
     res_arr = []
-    print("PKS", pks)
-    if is_empty(pks):
-        return "No orders to delete!"
     for pk in pks:
         res = Order.delete(pk)
         res = f'Order {pk} has been deleted' if res == 1 else 'Order {pk} not deleted'
         res_arr.append(res)
-    return res_arr
+    
+    return res_arr if res_arr else "No orders to delete!"
 
-def is_empty(generator):
-    for item in generator:
-        return False
-    return True
 
 def format(order: Order):
     return {
