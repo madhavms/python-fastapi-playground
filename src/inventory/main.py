@@ -59,10 +59,10 @@ def format(pk: str):
 @app.post('/products')
 def create(product: Product):
     try:
-        saved = product.save().pk
+        saved = f'Product saved with id = {product.save().pk}'
     except:
         saved = "An error occured while saving"
-    return 1
+    return saved
 
 
 @app.get('/products/{pk}')
