@@ -79,7 +79,11 @@ def format_order(pk):
 
 @app.get('/orders/{pk}')
 def get(pk: str):
-    return Order.get(pk)
+    try:
+        res = Order.get(pk)
+    except:
+        res = global_var.PRODUCT_NOT_FOUND
+    return res
 
 
 @app.post('/orders')
