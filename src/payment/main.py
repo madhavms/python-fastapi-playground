@@ -3,9 +3,10 @@ from fastapi import FastAPI
 from redis_om import get_redis_connection, HashModel
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
+from fastapi.encoders import jsonable_encoder
 import os
 from dotenv import load_dotenv, find_dotenv
-from starlette.requests import Request
+from starlette.requests import Request                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
 import requests
 import time
 from fastapi.background import BackgroundTasks
@@ -17,7 +18,7 @@ env_path = Path('..')/'.env'
 load_dotenv(find_dotenv())
 
 
-REDIS_HOST = os.getenv('REDIS_HOST')
+REDIS_HOST = os.getenv('REDIS_HOST')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 REDIS_PORT = os.getenv('REDIS_PORT')
 
@@ -68,10 +69,10 @@ def format_order(pk):
         'order_id': order.pk,
         'product_id': order.product_id,
         'price': order.price,
-        'fee': order.quantity,
-        'total': order.quantity,
+        'fee': order.fee,
+        'total': order.total,
         'quantity': order.quantity,
-        'status': 'pending',
+        'status': order.status,
         'created_timestamp': order.created_timestamp,
         'last_update_timestamp': order.last_update_timestamp
     }
@@ -85,6 +86,14 @@ def get(pk: str):
         res = global_var.PRODUCT_NOT_FOUND
     return res
 
+@app.patch('/orders')
+async def update(request: Request):
+    body = await request.json()
+    print(body)
+    order = Order.get(body["pk"])
+    order.status = body["status"]
+    order.save()
+    return order
 
 @app.post('/orders')
 async def create(request: Request, background_tasks: BackgroundTasks):
@@ -99,12 +108,15 @@ async def create(request: Request, background_tasks: BackgroundTasks):
     if product == global_var.PRODUCT_NOT_FOUND:
         return product
 
+    if product['quantity'] == 0 or product['quantity'] < body['quantity']:
+        return f"Requested qty not available for {product['name']}. In stock qty: {product['quantity']}"
+
     order = Order(
         product_id=body['id'],
         price=product['price'],
         fee=0.2*product['price'],
         total=1.2*product['price'],
-        quantity=product['quantity'],
+        quantity=body['quantity'],
         status='pending',
         created_timestamp=str(datetime.datetime.now()),
         last_update_timestamp=str(datetime.datetime.now())
@@ -117,9 +129,10 @@ async def create(request: Request, background_tasks: BackgroundTasks):
 
 def order_completed(order: Order):
     time.sleep(5)
-    order.status = 'completed'
-    print(order)
     order.save()
+    redis.xadd('order_completed', order.dict(), '*')
+
+
 
 @app.delete('/orders')
 def get():
@@ -141,7 +154,7 @@ def format(order: Order):
         'fee': order.quantity,
         'total': order.quantity,
         'quantity': order.quantity,
-        'status': 'pending',
+        'status': order.status,
         'created_timestamp': order.created_timestamp,
         'last_update_timestamp': order.last_update_timestamp
     }
