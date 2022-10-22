@@ -54,28 +54,15 @@ class Order(HashModel):
         database = redis
 
 
+#Returns all the orders
 @app.get('/orders')
 def get():
     pks = Order.all_pks()
-    res = [format_order(pk) for pk in pks]
+    res = [Order.get(pk) for pk in pks]
 
     return res if res else "No orders to display"
 
 
-def format_order(pk):
-
-    order = Order.get(pk)
-    return {
-        'order_id': order.pk,
-        'product_id': order.product_id,
-        'price': order.price,
-        'fee': order.fee,
-        'total': order.total,
-        'quantity': order.quantity,
-        'status': order.status,
-        'created_timestamp': order.created_timestamp,
-        'last_update_timestamp': order.last_update_timestamp
-    }
 
 
 @app.get('/orders/{pk}')
@@ -124,7 +111,7 @@ async def create(request: Request, background_tasks: BackgroundTasks):
     order.save()
     # from fastapi.background
     background_tasks.add_task(order_completed, order)
-    return format(order)
+    return order
 
 
 def order_completed(order: Order):
@@ -146,15 +133,3 @@ def get():
     return res_arr if res_arr else "No orders to delete!"
 
 
-def format(order: Order):
-    return {
-        'order_id': order.pk,
-        'product_id': order.product_id,
-        'price': order.price,
-        'fee': order.quantity,
-        'total': order.quantity,
-        'quantity': order.quantity,
-        'status': order.status,
-        'created_timestamp': order.created_timestamp,
-        'last_update_timestamp': order.last_update_timestamp
-    }
