@@ -17,13 +17,21 @@ function App() {
 
   const [products, setProducts] = useState([])
 
+  const sortByName = () => {
+    console.log('clicked')
+    setProducts(prev => prev.sort((a,b) => {
+      console.log(a.name.localCompare(b.name))
+      return a.name - b.name
+    }))
+  }
+
   return (
     <div className="App">
     {!!products.length && 
       <table>
       <tbody>
       <tr>
-      <th>Name</th>
+      <th onClick={sortByName}>Name</th>
       <th>Price</th>
       <th>Quantity</th>
       </tr>
