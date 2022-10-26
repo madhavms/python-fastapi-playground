@@ -1,5 +1,6 @@
 import './App.css';
 import { useEffect, useState } from 'react';
+import { Loader } from './components/Loader';
 
 function App() {
 
@@ -9,6 +10,7 @@ function App() {
       const data = await res.json()
       console.log(data)
       setProducts(data)
+      setIsLoading(false)
     }
 
     getProductDetails()
@@ -16,17 +18,21 @@ function App() {
   },[])
 
   const [products, setProducts] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const sortByName = () => {
     console.log('clicked')
-    setProducts(prev => prev.sort((a,b) => {
-      console.log(a.name.localCompare(b.name))
-      return a.name - b.name
+    setProducts(products.sort((a,b) => {
+      let name1 = a.name
+      let name2 = b.name
+      console.log(a.name, typeof(a.name), typeof(b.name),a,b)
+      return String(name1).localCompare(String(name2))
     }))
   }
 
   return (
     <div className="App">
+    <Loader isLoading={isLoading}>
     {!!products.length && 
       <table>
       <tbody>
@@ -47,6 +53,7 @@ function App() {
       </tbody>
       </table>
     }
+    </Loader>
     </div>
   );
 }
